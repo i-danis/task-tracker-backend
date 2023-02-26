@@ -19,7 +19,6 @@ pydantic = {extras = ["dotenv", "email"], version = "^1.10.5"}
 uvicorn = {extras = ["standard"], version = "^0.20.0"}
 
 
-
 [tool.poetry.group.dev.dependencies]
 autoflake = "^2.0.1"
 black = "^23.1.0"

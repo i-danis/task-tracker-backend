@@ -7,6 +7,17 @@ version: "3.9"
 #
 
 services:
+  postgres:
+    restart: unless-stopped
+    image: postgres:15
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    env_file:
+      - .env
+    environment:
+      - POSTGRES_DB=${DEFAULT_DATABASE_DB}
+      - POSTGRES_USER=${DEFAULT_DATABASE_USER}
+      - POSTGRES_PASSWORD=${DEFAULT_DATABASE_PASSWORD}
   default_database:
     restart: unless-stopped
     image: postgres:15
@@ -35,6 +46,31 @@ services:
     ports:
       - "${TEST_DATABASE_PORT}:5432"
 
+  api:
+    build: .
+    depends_on:
+      - default_database
+      - test_database
+      - postgres
+    environment:
+      - DEFAULT_DATABASE_HOSTNAME=postgres
+      - DEFAULT_DATABASE_PORT=5432
+    env_file:
+      - .env
+    #environment:
+    #  - POSTGRES_HOST=db
+    command:
+      - /bin/bash
+      - -c
+      - |
+        poetry run alembic upgrade head
+        poetry run uvicorn src.main:app --host 0.0.0.0 --workers 2 --loop uvloop
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+
+
 volumes:
   test_database_data:
   default_database_data:
+  postgres_data:
